@@ -117,6 +117,19 @@ class NGramEvaluator:
         repetition_ratio = 1.0 - (unique_ngrams / total_ngrams)
         return max(0.0, min(1.0, repetition_ratio))
 
+    _STEP_PREFIX_RE = re.compile(r"^(?:step|iteration|item|section|\#)?\s*(\d+)[\s:.\)-]", re.IGNORECASE)
+
+    @classmethod
+    def _extract_step_index(cls, text: str) -> Optional[int]:
+        # ponytail: lightweight regex extracts numeric step headers (Step 1, Section 2, 3., etc.)
+        m = cls._STEP_PREFIX_RE.match(text.strip())
+        if m:
+            try:
+                return int(m.group(1))
+            except ValueError:
+                return None
+        return None
+
     @classmethod
     def compute_sentence_similarity(
         cls,
@@ -128,6 +141,7 @@ class NGramEvaluator:
         if len(clean_curr) < 12 or not past_sentences:
             return 0.0
 
+        curr_step = cls._extract_step_index(clean_curr)
         max_sim = 0.0
         # ponytail: inspect recent 6 sentences to catch circular phrasing
         candidates = past_sentences[-6:]
@@ -136,6 +150,12 @@ class NGramEvaluator:
             if len(clean_past) < 12:
                 continue
             ratio = fuzz.token_sort_ratio(clean_curr, clean_past) / 100.0
+
+            # If sequential step numbers are advancing (e.g. Step 1 -> Step 2), discount similarity
+            past_step = cls._extract_step_index(clean_past)
+            if curr_step is not None and past_step is not None and curr_step > past_step:
+                ratio *= 0.65
+
             if ratio > max_sim:
                 max_sim = ratio
 

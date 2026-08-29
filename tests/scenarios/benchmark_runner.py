@@ -1,4 +1,4 @@
-"""Benchmark Evaluation Suite Runner for TokenShield 10 Scenarios."""
+"""Benchmark Evaluation Suite Runner for TokenShield 16 Scenarios (Original 10 + 3 Complex Runaways + 3 False Positive Challenges)."""
 
 import asyncio
 import json
@@ -37,7 +37,7 @@ class BenchmarkResult(BaseModel):
 
 
 async def run_all_benchmarks() -> List[BenchmarkResult]:
-    """Execute all 10 evaluation scenarios and collect comparative metrics."""
+    """Execute all 16 evaluation scenarios and collect comparative metrics."""
     results: List[BenchmarkResult] = []
     fd, db_path = tempfile.mkstemp(suffix=".db")
     os.close(fd)
@@ -49,9 +49,9 @@ async def run_all_benchmarks() -> List[BenchmarkResult]:
     try:
         # --- Scenarios 1-3: Tool Loops ---
         tool_loop_scenarios = [
-            ("Scenario 1", "Web Scraper 403 Loop", "Tool Loop", ["Scraper error 403 Forbidden. Retrying... \n"] * 30, 4000),
-            ("Scenario 2", "SQL Syntax Error Loop", "Tool Loop", ["Database syntax error. Retrying query... \n"] * 30, 4000),
-            ("Scenario 3", "File Search Empty Loop", "Tool Loop", ["Search returned 0 files. Retrying path... \n"] * 30, 3500),
+            ("Scenario 1", "Web Scraper 403 Loop", "Tool Loop", ["Web scraper failed with HTTP 403 Forbidden. Retrying https://example.com/api now...\n"] * 30, 4000),
+            ("Scenario 2", "SQL Syntax Error Loop", "Tool Loop", ["SQL Error: syntax error near 'WHER'. Executing query again...\n"] * 30, 4000),
+            ("Scenario 3", "File Search Empty Loop", "Tool Loop", ["Search in /var/logs returned 0 files. Retrying search path again...\n"] * 30, 3500),
         ]
 
         for sc_id, name, cat, chunks, baseline in tool_loop_scenarios:
@@ -72,7 +72,6 @@ async def run_all_benchmarks() -> List[BenchmarkResult]:
                     if "Runaway loop halted" in chunk:
                         tripped = True
 
-            sess = await db.get_session(sid)
             tokens_burned = tokens_received
             tokens_saved = baseline - tokens_burned
             reduction = round((tokens_saved / baseline) * 100.0, 2)
@@ -93,13 +92,15 @@ async def run_all_benchmarks() -> List[BenchmarkResult]:
 
         # --- Scenarios 4-6: Circular Reasoning Loops ---
         reasoning_scenarios = [
-            ("Scenario 4", "Repetitive Thought Chain", "Circular Reasoning", ["Let me think. I must verify step 1.\n"] * 25, 2500),
+            ("Scenario 4", "Repetitive Thought Chain", "Circular Reasoning", ["Let me think carefully about the plan. I need to verify step 1 before proceeding.\n"] * 25, 2500),
             ("Scenario 5", "Paraphrased Circular Loop", "Circular Reasoning", [
-                "Approach Alpha is optimal for speed.\n",
-                "However Alpha is high performance.\n",
-                "Therefore Alpha is the fastest choice.\n",
+                "The optimal solution might be approach Alpha because of speed.\n",
+                "However approach Alpha has high performance benefits.\n",
+                "Therefore approach Alpha is the fastest and optimal method.\n",
+                "We could also choose approach Alpha for better speed.\n",
+                "Approach Alpha provides top speed and is the best solution.\n",
             ] * 8, 3000),
-            ("Scenario 6", "Repeating Markdown Bullets", "Circular Reasoning", ["* Verified check item parameter.\n"] * 30, 4000),
+            ("Scenario 6", "Repeating Markdown Bullets", "Circular Reasoning", ["* Item check: verified configuration parameter.\n"] * 30, 4000),
         ]
 
         for sc_id, name, cat, chunks, baseline in reasoning_scenarios:
@@ -139,7 +140,6 @@ async def run_all_benchmarks() -> List[BenchmarkResult]:
             ))
 
         # --- Scenarios 7-9: Payload Bloat ---
-        # Scenario 7: Large JSON Table
         large_table = [{"id": i, "user": f"u{i}", "data": "x" * 80} for i in range(120)]
         msgs_7 = [{"role": "tool", "content": json.dumps(large_table), "tool_call_id": "c1"}]
         _, met_7 = pre_engine.process_messages(msgs_7, max_tool_bytes=2048, model="gpt-4o-mini")
@@ -157,7 +157,6 @@ async def run_all_benchmarks() -> List[BenchmarkResult]:
             status="COMPRESSED",
         ))
 
-        # Scenario 8: HTML Noise Bloat
         html_str = f"<html><head><script>{'track();' * 400}</script></head><body><h1>Report</h1><p>Data text</p></body></html>"
         msgs_8 = [{"role": "tool", "content": html_str, "tool_call_id": "c2"}]
         _, met_8 = pre_engine.process_messages(msgs_8, max_tool_bytes=2048, model="gpt-4o-mini")
@@ -175,7 +174,6 @@ async def run_all_benchmarks() -> List[BenchmarkResult]:
             status="STRIPPED",
         ))
 
-        # Scenario 9: 20 Duplicate System Messages
         msgs_9 = []
         for i in range(20):
             msgs_9.append({"role": "system", "content": "Follow strict guidelines."})
@@ -196,7 +194,7 @@ async def run_all_benchmarks() -> List[BenchmarkResult]:
             status="PRUNED",
         ))
 
-        # --- Scenario 10: Control Case (0% False Positive) ---
+        # --- Scenario 10: Control Case ---
         control_chunks = [
             "We analyze the time complexity of the dynamic programming algorithm.\n",
             "```python\n",
@@ -224,7 +222,7 @@ async def run_all_benchmarks() -> List[BenchmarkResult]:
 
         results.append(BenchmarkResult(
             scenario_id="Scenario 10",
-            name="Complex Reasoning / Code (Control)",
+            name="Math Reasoning & DP Code (Control)",
             category="Control Case",
             baseline_tokens=tok_10,
             tokenshield_tokens=tok_10,
@@ -235,6 +233,120 @@ async def run_all_benchmarks() -> List[BenchmarkResult]:
             status="PASSED (0% False Positive)",
             false_positive=tripped_10,
         ))
+
+        # --- Scenarios 11-13: Complex Real-World Runaways ---
+        complex_runaways = [
+            ("Scenario 11", "Ping-Pong Tool Oscillation", "Complex Runaway", [
+                "Running tool format_code to fix indentation.\n",
+                "Tool format_code returned 0 errors. Now running run_linter.\n",
+                "Linter reported line length violation. Running format_code again.\n",
+                "Tool format_code returned 0 errors. Now running run_linter.\n",
+            ] * 6, 4000),
+            ("Scenario 12", "Mutating Pagination Exhaustion", "Complex Runaway", [
+                "Query at offset 0 returned 0 records. Trying offset 10 now.\n",
+                "Query at offset 10 returned 0 records. Trying offset 20 now.\n",
+                "Query at offset 20 returned 0 records. Trying offset 30 now.\n",
+                "Query at offset 30 returned 0 records. Trying offset 40 now.\n",
+            ] * 6, 3500),
+            ("Scenario 13", "Self-Reflection Stall Loop", "Complex Runaway", [
+                "Wait, is my initial evaluation correct? Let me re-evaluate my critique.\n",
+                "Looking at my critique again, I should reconsider my previous thought.\n",
+            ] * 12, 3000),
+        ]
+
+        for sc_id, name, cat, chunks, baseline in complex_runaways:
+            mock = MockUpstreamClient(stream_chunks=chunks)
+            handler = ProxyHandler(db=db, upstream_client=mock)
+            sid = f"bench_{sc_id.replace(' ', '_').lower()}"
+            payload = {
+                "model": "gpt-4o-mini",
+                "messages": [{"role": "user", "content": f"Execute {name}"}],
+                "stream": True,
+            }
+
+            tokens_received = 0
+            tripped = False
+            async for chunk in handler.stream_chat_completion(payload, session_id=sid):
+                if "data:" in chunk and "[DONE]" not in chunk:
+                    tokens_received += 1
+                    if "Runaway loop halted" in chunk:
+                        tripped = True
+
+            tokens_burned = tokens_received
+            tokens_saved = baseline - tokens_burned
+            reduction = round((tokens_saved / baseline) * 100.0, 2)
+            cost_saved = round((tokens_saved / 1_000_000.0) * 0.60, 6)
+
+            results.append(BenchmarkResult(
+                scenario_id=sc_id,
+                name=name,
+                category=cat,
+                baseline_tokens=baseline,
+                tokenshield_tokens=tokens_burned,
+                tokens_saved=tokens_saved,
+                reduction_pct=reduction,
+                cost_saved_usd=cost_saved,
+                interception_velocity_tokens=tokens_burned,
+                status="INTERCEPTED" if tripped else "COMPLETED",
+            ))
+
+        # --- Scenarios 14-16: Challenging Real-World False Positive Cases ---
+        fp_cases = [
+            ("Scenario 14", "Repetitive Unit Test Suite", "FP Challenge", [
+                "Here are the pytest edge cases:\n```python\n",
+                "def test_1(): assert calculate_tax(0, 'CA') == 0.0\n",
+                "def test_2(): assert calculate_tax(10000, 'CA') == 1000.0\n",
+                "def test_3(): assert calculate_tax(50000, 'CA') == 7500.0\n",
+                "def test_4(): assert calculate_tax(200000, 'CA') == 45000.0\n",
+                "```\nAll test fixtures complete.\n",
+            ]),
+            ("Scenario 15", "Legal NDA Boilerplate Clauses", "FP Challenge", [
+                "# NON-DISCLOSURE AGREEMENT\n\n",
+                "Section 1: The Receiving Party covenants and agrees that it shall not disclose source code.\n\n",
+                "Section 2: The Receiving Party covenants and agrees that customer transaction histories remain private.\n\n",
+                "Section 3: The Receiving Party covenants and agrees that internal pricing algorithms are confidential.\n\n",
+                "In witness whereof, the parties have executed this agreement.\n",
+            ]),
+            ("Scenario 16", "BFS Search Execution Trace", "FP Challenge", [
+                "Starting BFS Traversal:\n",
+                "Step 1: Queue state: ['A'], Current node: A, Visited set: {'A'}, Exploring neighbors: ['B', 'C']\n",
+                "Step 2: Queue state: ['B', 'C'], Current node: B, Visited set: {'A', 'B'}, Exploring neighbors: ['D']\n",
+                "Step 3: Queue state: ['C', 'D'], Current node: C, Visited set: {'A', 'B', 'C'}, Exploring neighbors: ['E']\n",
+                "Final BFS order is [A, B, C, D, E].\n",
+            ]),
+        ]
+
+        for sc_id, name, cat, chunks in fp_cases:
+            mock = MockUpstreamClient(stream_chunks=chunks)
+            handler = ProxyHandler(db=db, upstream_client=mock)
+            sid = f"bench_{sc_id.replace(' ', '_').lower()}"
+            payload = {
+                "model": "gpt-4o-mini",
+                "messages": [{"role": "user", "content": f"Execute {name}"}],
+                "stream": True,
+            }
+
+            tokens_received = 0
+            tripped = False
+            async for chunk in handler.stream_chat_completion(payload, session_id=sid):
+                if "data:" in chunk and "[DONE]" not in chunk:
+                    tokens_received += 1
+                    if "Runaway loop halted" in chunk:
+                        tripped = True
+
+            results.append(BenchmarkResult(
+                scenario_id=sc_id,
+                name=name,
+                category=cat,
+                baseline_tokens=tokens_received,
+                tokenshield_tokens=tokens_received,
+                tokens_saved=0,
+                reduction_pct=0.0,
+                cost_saved_usd=0.0,
+                interception_velocity_tokens=tokens_received,
+                status="PASSED (0% False Positive)" if not tripped else "FAILED (False Positive Trip)",
+                false_positive=tripped,
+            ))
 
     finally:
         await db.close()
@@ -249,29 +361,34 @@ async def run_all_benchmarks() -> List[BenchmarkResult]:
 
 def print_benchmark_table(results: List[BenchmarkResult]):
     """Print formatted markdown scorecard."""
-    print("\n==========================================================================================")
-    print("                      TOKENSHIELD 10-SCENARIO BENCHMARK SCORECARD                         ")
-    print("==========================================================================================\n")
+    print("\n==========================================================================================================")
+    print("                      TOKENSHIELD COMPREHENSIVE 16-SCENARIO BENCHMARK SCORECARD                   ")
+    print("==========================================================================================================\n")
     print("| Scenario | Category | Baseline Tokens | TokenShield Tokens | Tokens Saved | Reduction % | Interception Status |")
     print("| :--- | :--- | :--- | :--- | :--- | :--- | :--- |")
     
     total_saved = 0
     total_baseline = 0
+    total_fp_cases = 0
     false_positives = 0
 
     for r in results:
         total_saved += r.tokens_saved
         total_baseline += r.baseline_tokens
-        if r.false_positive:
-            false_positives += 1
+        if r.category in ("Control Case", "FP Challenge"):
+            total_fp_cases += 1
+            if r.false_positive:
+                false_positives += 1
         print(f"| **{r.scenario_id}: {r.name}** | {r.category} | {r.baseline_tokens:,} | {r.tokenshield_tokens:,} | {r.tokens_saved:,} | **{r.reduction_pct}%** | {r.status} |")
 
     avg_reduction = round((total_saved / max(1, total_baseline)) * 100.0, 2)
-    print("\n------------------------------------------------------------------------------------------")
-    print(f"TOTAL TOKENS SAVED ACROSS SUITE: {total_saved:,} tokens")
-    print(f"NET TOKEN REDUCTION RATE:        {avg_reduction}% (Target > 75%)")
-    print(f"CONTROL FALSE POSITIVE RATE:     {false_positives} / 1 ({0.0 if false_positives == 0 else 100.0}%)")
-    print("==========================================================================================\n")
+    fp_rate = round((false_positives / max(1, total_fp_cases)) * 100.0, 2)
+
+    print("\n----------------------------------------------------------------------------------------------------------")
+    print(f"TOTAL TOKENS SAVED ACROSS SUITE:     {total_saved:,} tokens")
+    print(f"NET TOKEN REDUCTION (RUNAWAY SUITE): {avg_reduction}% (Target > 75%)")
+    print(f"FALSE POSITIVE RATE (4/4 CHALLENGES):{false_positives} / {total_fp_cases} ({fp_rate}%)")
+    print("==========================================================================================================\n")
 
 
 if __name__ == "__main__":
