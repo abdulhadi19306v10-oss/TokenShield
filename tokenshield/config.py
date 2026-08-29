@@ -46,3 +46,45 @@ def get_config() -> TokenShieldConfig:
     """Return cached singleton configuration instance."""
     # ponytail: standard lru_cache eliminates redundant file/env reads
     return TokenShieldConfig()
+
+
+def reload_config() -> TokenShieldConfig:
+    """Clear cache and reload configuration from disk/env."""
+    get_config.cache_clear()
+    return get_config()
+
+
+def save_config_to_env(updates: dict, env_path: str = ".env") -> bool:
+    """Save dictionary of configuration keys to .env file."""
+    # ponytail: direct file write updates .env without heavy dotenv dependencies
+    lines = [
+        "# TokenShield Runtime Configuration",
+        f"HOST={updates.get('HOST', '0.0.0.0')}",
+        f"PORT={updates.get('PORT', 8000)}",
+        f"UPSTREAM_BASE_URL={updates.get('UPSTREAM_BASE_URL', 'https://api.openai.com/v1')}",
+        f"UPSTREAM_API_KEY={updates.get('UPSTREAM_API_KEY', '')}",
+        f"DEFAULT_MODEL={updates.get('DEFAULT_MODEL', 'gpt-4o-mini')}",
+        "",
+        "# Pre-Execution Thresholds",
+        f"MAX_TOOL_PAYLOAD_BYTES={updates.get('MAX_TOOL_PAYLOAD_BYTES', 4096)}",
+        f"SLIDING_WINDOW_TURNS={updates.get('SLIDING_WINDOW_TURNS', 10)}",
+        f"ENABLE_DEDUPLICATION={str(updates.get('ENABLE_DEDUPLICATION', True)).lower()}",
+        "",
+        "# In-Flight Streaming & Anomaly Thresholds",
+        f"NGRAM_N={updates.get('NGRAM_N', 3)}",
+        f"NGRAM_WINDOW_TOKENS={updates.get('NGRAM_WINDOW_TOKENS', 40)}",
+        f"LOOP_ANOMALY_THRESHOLD={updates.get('LOOP_ANOMALY_THRESHOLD', 0.70)}",
+        f"SIMILARITY_THRESHOLD={updates.get('SIMILARITY_THRESHOLD', 0.85)}",
+        f"MIN_TOKENS_BEFORE_CHECK={updates.get('MIN_TOKENS_BEFORE_CHECK', 15)}",
+        "",
+        "# Telemetry & Database",
+        f"DATABASE_PATH={updates.get('DATABASE_PATH', 'tokenshield_telemetry.db')}",
+        "",
+        "# Circuit Breaker Policies",
+        f"ENABLE_HUMAN_CHECKPOINT={str(updates.get('ENABLE_HUMAN_CHECKPOINT', False)).lower()}",
+        f"AUTO_INJECT_STEERING={str(updates.get('AUTO_INJECT_STEERING', True)).lower()}",
+    ]
+    with open(env_path, "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+    reload_config()
+    return True
