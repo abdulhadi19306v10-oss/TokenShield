@@ -1,23 +1,25 @@
-# 🛡️ TokenShield: Real-Time Agentic Trajectory & Token Interceptor
-
-> **Zero-Code Drop-In Proxy for Halting Runaway Agent Loops, Pruning Payload Bloat, and Saving 99%+ of Wasted LLM Tokens.**  
-> *Built for the micro1 Agentic Workflows Hackathon.*
-
----
-
-## 📑 Table of Contents
-1. [Executive Summary & Problem Statement](#-executive-summary--problem-statement)
-2. [Who Has This Problem & Why It Matters](#-who-has-this-problem--why-it-matters)
-3. [Architecture & How TokenShield Works](#-architecture--how-tokenshield-works)
-4. [Improvement Changelog (The Evolution Story)](#-improvement-changelog-the-evolution-story)
-5. [Evaluation Results & Benchmark Scorecard](#-evaluation-results--benchmark-scorecard)
-6. [Failure Modes & Hot Take](#-failure-modes--hot-take)
-7. [Quick Start & Reproduction Guide](#-quick-start--reproduction-guide)
-8. [Supporting Deliverables & Links](#-supporting-deliverables--links)
+<div align="center">
+  <img src="assets/logo.svg" alt="TokenShield Logo" width="380"/>
+  <p><strong>Real-Time Agentic Trajectory &amp; Token Interceptor</strong></p>
+  <p><em>Zero-Code Drop-In Proxy for Halting Runaway Agent Loops, Pruning Payload Bloat, and Saving 99%+ of Wasted LLM Tokens.</em></p>
+  <p><strong>Built for the micro1 Agentic Workflows Hackathon</strong></p>
+</div>
 
 ---
 
-## 🎯 Executive Summary & Problem Statement
+## Table of Contents
+1. [Executive Summary & Problem Statement](#executive-summary--problem-statement)
+2. [Who Has This Problem & Why It Matters](#who-has-this-problem--why-it-matters)
+3. [Architecture & How TokenShield Works](#architecture--how-tokenshield-works)
+4. [Improvement Changelog (The Evolution Story)](#improvement-changelog-the-evolution-story)
+5. [Evaluation Results & Benchmark Scorecard](#evaluation-results--benchmark-scorecard)
+6. [Failure Modes & Hot Take](#failure-modes--hot-take)
+7. [Quick Start & Reproduction Guide](#quick-start--reproduction-guide)
+8. [Supporting Deliverables & Links](#supporting-deliverables--links)
+
+---
+
+## Executive Summary & Problem Statement
 
 Autonomous agentic workflows (ReAct, Tool-Calling, Plan-and-Solve) suffer from three catastrophic failure modes:
 1. **Infinite Tool Retry Loops:** An agent encounters a persistent 403 Forbidden, database syntax error, or empty query result and repeatedly calls the same tool with identical arguments indefinitely.
@@ -39,7 +41,7 @@ Autonomous agentic workflows (ReAct, Tool-Calling, Plan-and-Solve) suffer from t
 
 ---
 
-## 👥 Who Has This Problem & Why It Matters
+## Who Has This Problem & Why It Matters
 
 | Stakeholder | The Bottleneck | Value of Solving It |
 | :--- | :--- | :--- |
@@ -49,7 +51,7 @@ Autonomous agentic workflows (ReAct, Tool-Calling, Plan-and-Solve) suffer from t
 
 ---
 
-## 🏗️ Architecture & How TokenShield Works
+## Architecture & How TokenShield Works
 
 ```mermaid
 flowchart TD
@@ -88,7 +90,7 @@ flowchart TD
     end
     
     Upstream["Upstream LLM Provider (OpenAI / Anthropic / Local)"]
-    Dashboard["Streamlit Real-Time Visualizer"]
+    Dashboard["Control Dashboard & Visualizer"]
 
     Client -->|"POST /v1/chat/completions"| API
     API -->|"Extract Messages"| PreFlight
@@ -115,13 +117,13 @@ flowchart TD
 3. **Circuit Breaker & Recovery ([`circuit_breaker.py`](file:///C:/Users/Abdul%20Hadi/Desktop/Micro1/tokenshield/engine/circuit_breaker.py))**:
    - Halts upstream stream connections immediately when anomaly thresholds ($\ge 0.70$) are breached.
    - Synthesizes dynamic corrective steering: `[TokenShield Intercept: Loop detected. Do not repeat tool with identical args.]`
-   - Provides async `HumanCheckpointGate` for operator approval via the Streamlit dashboard.
+   - Provides async `HumanCheckpointGate` for operator approval via the GUI dashboard.
 4. **Live Control Dashboard ([`dashboard/app.py`](file:///C:/Users/Abdul%20Hadi/Desktop/Micro1/tokenshield/dashboard/app.py))**:
-   - Real-time Plotly anomaly progression graphs, KPI scorecards, and interactive session controls.
+   - Real-time Plotly anomaly progression graphs, KPI scorecards, and interactive configuration controls.
 
 ---
 
-## 📈 Improvement Changelog (The Evolution Story)
+## Improvement Changelog (The Evolution Story)
 
 | Stage | What We Tried & Why | Evidence / Metric | Decision / Learning |
 | :--- | :--- | :--- | :--- |
@@ -130,11 +132,11 @@ flowchart TD
 | **Iteration 2** | Implemented In-Flight Stream Inspector with rolling $n$-gram repetition scoring. | Intercepted verbatim loop streams in **2 tokens**, saving 3,998 tokens per failure. | **Kept.** Sub-millisecond stream inspection halts runaway loops instantly. |
 | **Iteration 3** | Attempted naive Levenshtein string matching across all generated lines. | Triggered false-positive trips on valid repetitive unit tests and BFS search traces. | **Removed & Revised.** Added **Syntax Whitelisting** for code blocks and **Monotonic Step Progression** for algorithm traces. |
 | **Iteration 4** | Added Coordinated Circuit Breaker, Dynamic Prompt Steering, and Human Checkpoint Gate. | Halts upstream stream, logs telemetry to SQLite, and provides operator clearance UI. | **Kept.** Enables smooth recovery rather than crashing the client agent. |
-| **Final** | Combined Pre-Execution Optimization + Stream Monitor + Circuit Breaker + Streamlit Control Panel. | **$99.29\%$ Net Token Reduction** across runaway suite, **$0.0\%$ False Positives** across all 4 challenge cases. | Final production architecture achieved. |
+| **Final** | Combined Pre-Execution Optimization + Stream Monitor + Circuit Breaker + Control Panel GUI. | **$99.29\%$ Net Token Reduction** across runaway suite, **$0.0\%$ False Positives** across all 4 challenge cases. | Final production architecture achieved. |
 
 ---
 
-## 📊 Evaluation Results & Benchmark Scorecard
+## Evaluation Results & Benchmark Scorecard
 
 We evaluated TokenShield across **16 comprehensive scenarios** (including 6 tool loops, 3 circular reasoning cases, 3 payload bloat tests, 3 complex real-world runaways, and 4 false-positive challenge cases).
 
@@ -171,20 +173,20 @@ FALSE POSITIVE RATE (4/4 CHALLENGES):0 / 4 (0.0%)
 
 ---
 
-## 💡 Failure Modes & Hot Take
+## Failure Modes & Hot Take
 
 ### Main Failure Mode Observed
 **Naive repetition filters cause severe false positives on structured outputs.**
 * *The Discovery*: Early iterations using global string similarity frequently false-tripped when models generated repetitive Python unit test assertions (`assert calculate_tax(...) == ...`), repeated legal contract boilerplate (`Section X: The Receiving Party covenants...`), or BFS graph state machine traces (`Step X: Queue state: [...]`).
 * *The Fix*: Implementing **Syntax Whitelisting** (detecting markdown code fences to raise thresholds) and **Monotonic Step Progression** (recognizing advancing numerical step prefixes) dropped the false-positive rate from $25\%$ to **$0.0\%$**.
 
-### 🔥 The Hot Take
+### The Hot Take
 > *"Asking an LLM agent to detect and fix its own infinite loops via self-reflection is an anti-pattern. By the time the agent notices it is looping, thousands of tokens are burned, the context window is permanently polluted with garbage errors, and API rate limits are exhausted.  
 > Loop interception belongs in the **proxy layer**—sub-millisecond streaming inspection with zero-code proxy middleware is $100\times$ faster, $99\%$ cheaper, and completely model-agnostic."*
 
 ---
 
-## 🚀 Quick Start & Reproduction Guide
+## Quick Start & Reproduction Guide
 
 ### Prerequisites
 - Python 3.11+
@@ -213,7 +215,7 @@ cp .env.example .env
 uvicorn tokenshield.proxy.server:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-### 4. Launch the Live Streamlit Dashboard
+### 4. Launch the Live Control Dashboard & Settings GUI
 ```bash
 streamlit run tokenshield/dashboard/app.py
 ```
@@ -229,9 +231,9 @@ python tests/scenarios/benchmark_runner.py
 
 ---
 
-## 📁 Supporting Deliverables & Links
+## Supporting Deliverables & Links
 
-* 📖 **[Detailed Reproduction Guide (`REPRODUCTION.md`)](file:///C:/Users/Abdul%20Hadi/Desktop/Micro1/REPRODUCTION.md)**: Exhaustive step-by-step reproduction instructions for judges starting from a clean machine.
-* 🛰️ **[Representative Agent Trajectories (`AGENT_TRAJECTORIES.md`)](file:///C:/Users/Abdul%20Hadi/Desktop/Micro1/AGENT_TRAJECTORIES.md)**: Real execution logs showing pre-flight compression, in-flight stream evaluation, circuit trip notices, and recovery steering.
-* 🎥 **[5-Minute Solution Video Script (`VIDEO_SCRIPT.md`)](file:///C:/Users/Abdul%20Hadi/Desktop/Micro1/VIDEO_SCRIPT.md)**: Walkthrough script explaining the problem, live demo, and changelog story.
-* 📐 **[Technical Architectural Blueprint (`design.md`)](file:///C:/Users/Abdul%20Hadi/Desktop/Micro1/design.md)**: Exhaustive engineering specification, mathematical scoring formulas, and database DDL.
+* [Detailed Reproduction Guide (`REPRODUCTION.md`)](file:///C:/Users/Abdul%20Hadi/Desktop/Micro1/REPRODUCTION.md): Exhaustive step-by-step reproduction instructions for judges starting from a clean machine.
+* [Representative Agent Trajectories (`AGENT_TRAJECTORIES.md`)](file:///C:/Users/Abdul%20Hadi/Desktop/Micro1/AGENT_TRAJECTORIES.md): Real execution logs showing pre-flight compression, in-flight stream evaluation, circuit trip notices, and recovery steering.
+* [5-Minute Solution Video Script (`VIDEO_SCRIPT.md`)](file:///C:/Users/Abdul%20Hadi/Desktop/Micro1/VIDEO_SCRIPT.md): Walkthrough script explaining the problem, live demo, and changelog story.
+* [Technical Architectural Blueprint (`design.md`)](file:///C:/Users/Abdul%20Hadi/Desktop/Micro1/design.md): Exhaustive engineering specification, mathematical scoring formulas, and database DDL.

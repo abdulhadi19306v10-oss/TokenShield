@@ -1,7 +1,8 @@
-# 🛰️ Representative Agent Trajectories & Interception Logs
-
-> **Execution Traces & Event Telemetry for TokenShield**  
-> *micro1 Agentic Workflows Hackathon (Deliverable 04)*
+<div align="center">
+  <img src="assets/logo.svg" alt="TokenShield Logo" width="300"/>
+  <p><strong>Representative Agent Trajectories &amp; Interception Telemetry</strong></p>
+  <p><em>micro1 Agentic Workflows Hackathon (Deliverable 04)</em></p>
+</div>
 
 ---
 
@@ -17,7 +18,7 @@ Every request routed through TokenShield progresses through four observable tele
 
 ## 2. Trajectory Case 1: Infinite Web Scraper 403 Loop Interception
 
-### 2.1 Initial Request Payload (Client Agent $\to$ TokenShield)
+### 2.1 Initial Request Payload (Client Agent -> TokenShield)
 ```json
 {
   "model": "gpt-4o-mini",
@@ -131,10 +132,10 @@ data: [DONE]
 ```
 >>> Loop detected in financial order execution agent.
 >>> Suspending execution at HumanCheckpointGate (session_id: sess_fin_77a2).
->>> Waiting for operator decision via Streamlit Control Panel...
+>>> Waiting for operator decision via Control Dashboard...
 ```
 
-### 4.2 Streamlit Dashboard Action
+### 4.2 Dashboard Action
 * Operator inspects trajectory trace on the UI.
 * Operator clicks `[Approve & Continue]` / sends `POST /v1/control/human-gate` (`{"session_id": "sess_fin_77a2", "approved": true}`).
 

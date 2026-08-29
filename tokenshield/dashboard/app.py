@@ -22,8 +22,7 @@ from tokenshield.telemetry.models import SessionStatus
 
 # Page Configuration
 st.set_page_config(
-    page_title="TokenShield GUI & Control Center",
-    page_icon="🛡️",
+    page_title="TokenShield Control Center",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -110,12 +109,26 @@ def load_circuit_trips(db_path: str, limit: int = 50) -> pd.DataFrame:
         return pd.DataFrame()
 
 
+# --- Branding Header Component ---
+LOGO_SVG_HTML = """
+<div style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px; padding: 12px 18px; background: #0F172A; border-radius: 8px; color: #FFFFFF;">
+    <svg width="44" height="44" viewBox="0 0 76 76" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M 38 4 C 54 4, 70 12, 70 24 C 70 52, 38 72, 38 72 C 38 72, 6 52, 6 24 C 6 12, 22 4, 38 4 Z" fill="#1E3A8A" stroke="#3B82F6" stroke-width="3" />
+        <path d="M 18 36 L 28 36 L 33 22 L 42 50 L 48 36 L 58 36" fill="none" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" />
+        <circle cx="33" cy="22" r="3.5" fill="#60A5FA" />
+        <circle cx="42" cy="50" r="3.5" fill="#38BDF8" />
+    </svg>
+    <div>
+        <div style="font-size: 24px; font-weight: 800; letter-spacing: -0.5px; line-height: 1.1;">TOKENSHIELD</div>
+        <div style="font-size: 11px; font-weight: 600; color: #94A3B8; letter-spacing: 1.5px; text-transform: uppercase;">Real-Time Agentic Trajectory &amp; Token Interceptor</div>
+    </div>
+</div>
+"""
+
 # --- Sidebar ---
 config = get_config()
 
-st.sidebar.title("🛡️ TokenShield")
-st.sidebar.caption("Real-Time Agentic Trajectory & Token Interceptor")
-
+st.sidebar.markdown(LOGO_SVG_HTML, unsafe_allow_html=True)
 db_file = st.sidebar.text_input("Active Database Path", value=config.DATABASE_PATH)
 auto_refresh = st.sidebar.checkbox("Auto-refresh (5s)", value=False)
 if auto_refresh:
@@ -123,25 +136,25 @@ if auto_refresh:
     st.rerun()
 
 st.sidebar.divider()
-st.sidebar.subheader("Quick Status")
+st.sidebar.subheader("Runtime Summary")
 st.sidebar.markdown(f"**Proxy Target:** `{config.HOST}:{config.PORT}`")
 st.sidebar.markdown(f"**Default Model:** `{config.DEFAULT_MODEL}`")
 st.sidebar.markdown(f"**Trip Threshold:** `{config.LOOP_ANOMALY_THRESHOLD}`")
 st.sidebar.markdown(f"**Similarity Threshold:** `{config.SIMILARITY_THRESHOLD}`")
 
 st.sidebar.divider()
-if st.sidebar.button("🔄 Reload Settings from .env"):
+if st.sidebar.button("Reload Settings from .env"):
     config = reload_config()
-    st.sidebar.success("Configuration reloaded successfully!")
+    st.sidebar.success("Configuration reloaded successfully.")
 
 
 # --- Main Tabbed Navigation ---
 tab_telemetry, tab_settings, tab_sandbox, tab_benchmarks, tab_about = st.tabs([
-    "📊 Live Telemetry",
-    "⚙️ Settings & Config GUI",
-    "🧪 Interactive Sandbox",
-    "🏆 16-Scenario Benchmarks",
-    "ℹ️ System Health & Guide",
+    "Live Telemetry",
+    "Configuration & Settings",
+    "Testing Sandbox",
+    "Benchmark Scorecard",
+    "System Health & Guide",
 ])
 
 
@@ -149,7 +162,7 @@ tab_telemetry, tab_settings, tab_sandbox, tab_benchmarks, tab_about = st.tabs([
 # TAB 1: LIVE TELEMETRY & CONTROL ROOM
 # ==============================================================================
 with tab_telemetry:
-    st.title("🛡️ Live Telemetry & Control Room")
+    st.markdown(LOGO_SVG_HTML, unsafe_allow_html=True)
     st.markdown("Real-time monitoring of LLM streaming agent trajectories, context deduplication savings, and circuit trips.")
 
     metrics = load_aggregate_metrics(db_file)
@@ -171,7 +184,7 @@ with tab_telemetry:
         st.divider()
 
         # Real-time Trajectory Anomaly Monitor
-        st.subheader("📈 In-Flight Trajectory Anomaly Monitor")
+        st.subheader("In-Flight Trajectory Anomaly Monitor")
         sessions_df = load_sessions(db_file, limit=50)
 
         if not sessions_df.empty:
@@ -211,7 +224,7 @@ with tab_telemetry:
                 )
                 st.plotly_chart(fig, use_container_width=True)
 
-                with st.expander("🔍 View Raw Trajectory Event Telemetry"):
+                with st.expander("View Raw Trajectory Event Telemetry"):
                     st.dataframe(events_df, use_container_width=True)
             else:
                 st.info("No chunk evaluation events logged for this session.")
@@ -219,7 +232,7 @@ with tab_telemetry:
         st.divider()
 
         # Circuit Breaker Trips Log
-        st.subheader("⚡ Intercepted Loop Incidents")
+        st.subheader("Intercepted Loop Incidents")
         trips_df = load_circuit_trips(db_file, limit=20)
         if not trips_df.empty:
             st.dataframe(
@@ -232,7 +245,7 @@ with tab_telemetry:
         st.divider()
 
         # Session Explorer
-        st.subheader("📋 Session History & Tokenomics")
+        st.subheader("Session History & Tokenomics")
         if not sessions_df.empty:
             st.dataframe(
                 sessions_df[[
@@ -247,11 +260,11 @@ with tab_telemetry:
 # TAB 2: SETTINGS & CONFIGURATION GUI
 # ==============================================================================
 with tab_settings:
-    st.title("⚙️ Settings & Configuration Manager")
-    st.markdown("Modify TokenShield proxy configuration, anomaly detection thresholds, and circuit breaker policies directly from this graphical interface.")
+    st.header("Configuration & Settings Manager")
+    st.markdown("Modify TokenShield proxy configuration, anomaly detection thresholds, and circuit breaker policies directly from this interface.")
 
     with st.form("settings_form"):
-        st.subheader("🌐 Network & Upstream Provider")
+        st.subheader("Network & Upstream Provider")
         c1, c2 = st.columns(2)
         with c1:
             host_val = st.text_input("Proxy Host", value=config.HOST, help="Network interface to bind (0.0.0.0 for all interfaces)")
@@ -262,7 +275,7 @@ with tab_settings:
             api_key_val = st.text_input("Upstream API Key", value=config.UPSTREAM_API_KEY, type="password", help="Authorization Bearer key for upstream LLM")
 
         st.divider()
-        st.subheader("🗜️ Pre-Execution Optimization")
+        st.subheader("Pre-Execution Optimization")
         c3, c4, c5 = st.columns(3)
         with c3:
             enable_dedup = st.toggle("Enable Pre-Flight Deduplication", value=bool(config.ENABLE_DEDUPLICATION))
@@ -272,7 +285,7 @@ with tab_settings:
             sliding_turns_val = st.slider("Sliding Window Turns", min_value=2, max_value=50, value=int(config.SLIDING_WINDOW_TURNS), step=1, help="Max conversational turns retained before trimming stale history")
 
         st.divider()
-        st.subheader("⚡ In-Flight Stream Anomaly Thresholds")
+        st.subheader("In-Flight Stream Anomaly Thresholds")
         c6, c7 = st.columns(2)
         with c6:
             anomaly_thresh_val = st.slider(
@@ -297,7 +310,7 @@ with tab_settings:
             min_tokens_val = st.slider("Min Warmup Tokens Before Check", min_value=5, max_value=50, value=int(config.MIN_TOKENS_BEFORE_CHECK), step=1)
 
         st.divider()
-        st.subheader("🛡️ Circuit Breaker & Database Policies")
+        st.subheader("Circuit Breaker & Database Policies")
         c8, c9, c10 = st.columns(3)
         with c8:
             auto_steer = st.toggle("Auto-Inject System Steering", value=bool(config.AUTO_INJECT_STEERING), help="Injects corrective recovery guidance when loops trip")
@@ -307,7 +320,7 @@ with tab_settings:
             db_path_val = st.text_input("Database File Path", value=config.DATABASE_PATH)
 
         st.divider()
-        submitted = st.form_submit_button("💾 Save & Apply to .env File", use_container_width=True)
+        submitted = st.form_submit_button("Save & Apply to .env File", use_container_width=True)
 
         if submitted:
             new_settings = {
@@ -329,24 +342,24 @@ with tab_settings:
                 "DATABASE_PATH": db_path_val,
             }
             save_config_to_env(new_settings)
-            st.success("✅ Configuration saved to .env and runtime cache updated!")
+            st.success("Configuration saved to .env and runtime cache updated.")
 
     st.divider()
-    st.subheader("🔌 Test Upstream Connectivity")
+    st.subheader("Probe Upstream Connectivity")
     if st.button("Probe Upstream Connection"):
         try:
             with st.spinner("Pinging upstream endpoint..."):
                 resp = httpx.get(f"{config.UPSTREAM_BASE_URL.rstrip('/')}/models", headers={"Authorization": f"Bearer {config.UPSTREAM_API_KEY}"} if config.UPSTREAM_API_KEY else {}, timeout=5.0)
                 st.info(f"Upstream responded with status HTTP {resp.status_code}")
         except Exception as e:
-            st.warning(f"Connection probe test: {str(e)} (Normal if running in offline mock mode)")
+            st.warning(f"Connection probe status: {str(e)} (Expected in offline mock mode)")
 
 
 # ==============================================================================
 # TAB 3: INTERACTIVE SANDBOX & PROMPT SIMULATOR
 # ==============================================================================
 with tab_sandbox:
-    st.title("🧪 Interactive Testing Sandbox")
+    st.header("Testing Sandbox")
     st.markdown("Test TokenShield's pre-flight context compression and in-flight streaming circuit breaker in real time.")
 
     preset = st.selectbox(
@@ -359,7 +372,7 @@ with tab_sandbox:
         ]
     )
 
-    if st.button("🚀 Run Live Sandbox Simulation"):
+    if st.button("Run Simulation"):
         st.write("---")
         with st.spinner("Executing simulation..."):
             sim_db = TelemetryDatabase(db_path=config.DATABASE_PATH)
@@ -392,7 +405,7 @@ with tab_sandbox:
                 msgs = [{"role": "tool", "content": json.dumps(large_table), "tool_call_id": "c_db"}]
                 opt_msgs, metrics = pre.process_messages(msgs, max_tool_bytes=2048, model="gpt-4o-mini")
                 
-                st.success("✅ Pre-Flight Context Optimization Complete!")
+                st.success("Pre-Flight Context Optimization Complete")
                 col_a, col_b, col_c = st.columns(3)
                 with col_a:
                     st.metric("Original Prompt Tokens", f"{metrics.original_prompt_tokens}")
@@ -444,20 +457,20 @@ with tab_sandbox:
                 streamed_text, tripped = asyncio.run(execute_simulation(handler, payload, sid, stream_box))
 
                 if tripped:
-                    st.error("⚡ **Circuit Breaker Tripped!** Runaway loop intercepted in-flight to prevent token burn.")
+                    st.error("Circuit Breaker Tripped: Runaway loop intercepted in-flight to prevent token burn.")
                     st.info("System recovery prompt injected into session history.")
                 else:
-                    st.success("✅ Stream completed normally with 0% false positives.")
+                    st.success("Stream completed normally with 0% false positives.")
 
 
 # ==============================================================================
 # TAB 4: 16-SCENARIO BENCHMARK SCORECARD
 # ==============================================================================
 with tab_benchmarks:
-    st.title("🏆 16-Scenario Benchmark Evaluation Suite")
+    st.header("16-Scenario Benchmark Evaluation Suite")
     st.markdown("Run the complete 16-scenario benchmark suite to evaluate token reduction rates, cost savings, and false-positive resilience.")
 
-    if st.button("▶️ Execute Full 16-Scenario Benchmark Suite", use_container_width=True):
+    if st.button("Execute Full 16-Scenario Benchmark Suite", use_container_width=True):
         with st.spinner("Running all 16 benchmark scenarios..."):
             results = asyncio.run(run_all_benchmarks())
 
@@ -496,9 +509,9 @@ with tab_benchmarks:
 # TAB 5: SYSTEM HEALTH & QUICK GUIDE
 # ==============================================================================
 with tab_about:
-    st.title("ℹ️ System Health & Integration Guide")
+    st.header("System Health & Integration Guide")
     st.markdown("""
-    ### 🛡️ How to Route Agent Requests Through TokenShield
+    ### How to Route Agent Requests Through TokenShield
     Clients simply point their standard OpenAI client SDK `base_url` to TokenShield:
     ```python
     from openai import OpenAI
@@ -516,7 +529,7 @@ with tab_about:
     ```
 
     ---
-    ### 🚀 Terminal Commands
+    ### Terminal Commands
     * **Start Proxy Server:** `uvicorn tokenshield.proxy.server:app --host 0.0.0.0 --port 8000 --reload`
     * **Start Dashboard:** `streamlit run tokenshield/dashboard/app.py`
     * **Run Test Suite:** `pytest tests/ -v`

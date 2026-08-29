@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 100" width="400" height="100">
+  <defs>
+    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E3A8A" />
+      <stop offset="100%" stop-color="#3B82F6" />
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#38BDF8" />
+      <stop offset="100%" stop-color="#60A5FA" />
+    </linearGradient>
+  </defs>
+
+  <!-- Shield Icon Mark -->
+  <g transform="translate(15, 12)">
+    <!-- Outer Shield -->
+    <path d="M 38 4 C 54 4, 70 12, 70 24 C 70 52, 38 72, 38 72 C 38 72, 6 52, 6 24 C 6 12, 22 4, 38 4 Z" 
+          fill="url(#shieldGrad)" stroke="#1D4ED8" stroke-width="2.5" />
+    <!-- Inner Intercept Waveform -->
+    <path d="M 18 36 L 28 36 L 33 22 L 42 50 L 48 36 L 58 36" 
+          fill="none" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" />
+    <!-- Pulse Node -->
+    <circle cx="33" cy="22" r="3" fill="#60A5FA" />
+    <circle cx="42" cy="50" r="3" fill="#38BDF8" />
+  </g>
+
+  <!-- Wordmark Text -->
+  <text x="100" y="52" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" 
+        font-size="34" font-weight="800" fill="#0F172A" letter-spacing="-0.5">
+    Token<tspan fill="url(#accentGrad)">Shield</tspan>
+  </text>
+  <text x="102" y="70" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" 
+        font-size="11" font-weight="600" fill="#64748B" letter-spacing="1.5">
+    REAL-TIME AGENTIC INTERCEPTOR
+  </text>
+</svg>

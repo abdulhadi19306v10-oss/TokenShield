@@ -1,7 +1,8 @@
-# 🔬 TokenShield Reproduction Guide
-
-> **Official Reproduction Manual for Judges & Independent Reviewers**  
-> *micro1 Agentic Workflows Hackathon*
+<div align="center">
+  <img src="assets/logo.svg" alt="TokenShield Logo" width="300"/>
+  <p><strong>Official Reproduction Manual for Judges &amp; Independent Reviewers</strong></p>
+  <p><em>micro1 Agentic Workflows Hackathon (Deliverable 02)</em></p>
+</div>
 
 ---
 
@@ -124,7 +125,7 @@ FALSE POSITIVE RATE (4/4 CHALLENGES):0 / 4 (0.0%)
 
 ---
 
-## 4. Launching the Live Proxy & Streamlit Dashboard
+## 4. Launching the Live Proxy & Dashboard GUI
 
 ### Step 4.1: Start the TokenShield Proxy Server
 ```bash
@@ -135,12 +136,12 @@ Test health endpoint:
 curl http://localhost:8000/health
 ```
 
-### Step 4.2: Launch the Streamlit Live Dashboard
+### Step 4.2: Launch the Control Dashboard GUI
 In a second terminal window:
 ```bash
 streamlit run tokenshield/dashboard/app.py
 ```
-Open your browser at `http://localhost:8501` to view live session metrics, Plotly trajectory graphs, and circuit trip logs.
+Open your browser at `http://localhost:8501` to view live session metrics, Plotly trajectory graphs, and configuration controls.
 
 ---
 

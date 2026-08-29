@@ -1,11 +1,12 @@
-# 🎥 TokenShield: 5-Minute Solution Video Script & Walkthrough
-
-> **Submission Video Outline & Talking Points for micro1 Hackathon**  
-> *Target Duration: 4 minutes 30 seconds (Max 5:00)*
+<div align="center">
+  <img src="assets/logo.svg" alt="TokenShield Logo" width="300"/>
+  <p><strong>5-Minute Solution Video Script &amp; Walkthrough</strong></p>
+  <p><em>micro1 Agentic Workflows Hackathon (Deliverable 03)</em></p>
+</div>
 
 ---
 
-## ⏱️ Video Breakdown & Timecodes
+## Video Breakdown & Timecodes
 
 ```
 00:00 - 00:45 | 1. The Problem & Baseline Failure
@@ -17,7 +18,7 @@
 
 ---
 
-## 🎙️ Detailed Script & Slide Walkthrough
+## Detailed Script & Slide Walkthrough
 
 ### 1. The Problem & Baseline Failure (00:00 - 00:45)
 * **Visual**: Screen recording of an autonomous agent running in terminal, calling a web scraper tool that returns a 403 Forbidden error. The agent endlessly retries the exact same query, burning 4,000+ tokens until it crashes from a timeout.
@@ -41,11 +42,11 @@
 ### 3. Live Execution Demo (01:45 - 03:00)
 * **Visual**: Split screen:
   - Left: Terminal running a runaway scraper loop request.
-  - Right: Streamlit Control Room (`http://localhost:8501`) showing the live Plotly trajectory graph spiking and the KPI scorecard updating in real time.
+  - Right: Control Room Dashboard (`http://localhost:8501`) showing the live Plotly trajectory graph spiking and the KPI scorecard updating in real time.
 * **Speaker**:
   > *"Let's see it in action. Here we trigger an agent stuck in a 403 scraper loop.*
-  > *Watch the right-hand dashboard: as tokens stream in, TokenShield tracks token velocity and anomaly score. On chunk 2, the score crosses our 0.70 threshold. The circuit breaker trips instantly!*
-  > *Instead of burning 4,000 tokens, the request was halted in just **2 tokens**, saving 3,998 tokens ($99.95% reduction). The database records the incident, calculates exact dollar savings, and returns a clean stop token to the client."*
+  > *Watch the dashboard: as tokens stream in, TokenShield tracks token velocity and anomaly score. On chunk 2, the score crosses our 0.70 threshold. The circuit breaker trips instantly!*
+  > *Instead of burning 4,000 tokens, the request was halted in just **2 tokens**, saving 3,998 tokens (99.95% reduction). The database records the incident, calculates exact dollar savings, and returns a clean stop token to the client."*
 
 ---
 
@@ -56,7 +57,7 @@
   > *Our baseline started with naive post-hoc prompting, which proved too slow.*
   > *In **Iteration 1 & 2**, we introduced pre-flight compression and rolling N-gram stream evaluation, yielding massive token reductions.*
   > *However, in **Iteration 3**, we hit a critical failure mode: naive string similarity triggered false-positive alarms on valid code generation (like repetitive pytest unit tests) and sequential graph traces.*
-  > *We **removed the global string matcher** and engineered **Syntax Whitelisting** for code blocks and **Monotonic Step Recognition** for algorithmic traces. This eliminated false alarms completely, achieving a **0.0% false-positive rate**."*
+  > *We **removed the global string matcher** and engineered **Syntax Whitelisting** for code blocks and **Monotonic Step Progression** for algorithm traces. This eliminated false alarms completely, achieving a **0.0% false-positive rate**."*
 
 ---
 
