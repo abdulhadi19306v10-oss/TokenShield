@@ -43,3 +43,4 @@ include = ["tokenshield*"]
 asyncio_mode = "auto"
 testpaths = ["tests"]
 pythonpath = ["."]
+python_files = ["test_*.py", "*_test.py", "scenario_*.py"]

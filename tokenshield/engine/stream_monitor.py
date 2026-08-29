@@ -150,7 +150,16 @@ class NGramEvaluator:
     ) -> float:
         """Calculate weighted composite loop anomaly score."""
         # Alpha=0.45 (n-gram loops), Beta=0.40 (fuzzy reasoning), Gamma=0.15 (tool repetitions)
-        score = (0.45 * ngram_score) + (0.40 * similarity_score) + (0.15 * tool_repeat_score)
+        if tool_repeat_score > 0.0:
+            score = (0.45 * ngram_score) + (0.40 * similarity_score) + (0.15 * tool_repeat_score)
+        else:
+            # ponytail: normalize over active weights (0.45 + 0.40 = 0.85) when tool repeat is absent
+            score = ((0.45 * ngram_score) + (0.40 * similarity_score)) / 0.85
+
+        # Reflect strong signal if either primary indicator is elevated
+        if ngram_score >= 0.60 or similarity_score >= 0.85:
+            score = max(score, ngram_score, similarity_score)
+
         return round(min(1.0, max(0.0, score)), 4)
 
 
@@ -204,27 +213,32 @@ class StreamMonitor:
         new_tokens = self.evaluator.tokenize_words(chunk_text)
         self._token_history.extend(new_tokens)
 
-        # 3. Update sentence buffers
+        # 3. Update sentence buffers (only outside code fences to prevent false positives on code keywords)
         self._current_sentence_buffer += chunk_text
         parts = self._SENTENCE_SPLIT_RE.split(self._current_sentence_buffer)
         similarity_score = 0.0
 
-        if len(parts) > 1:
-            # Completed sentences emerged
-            completed = parts[:-1]
-            self._current_sentence_buffer = parts[-1]
-            for s in completed:
-                if s.strip():
-                    sim = self.evaluator.compute_sentence_similarity(s, self._sentence_history)
-                    if sim > similarity_score:
-                        similarity_score = sim
-                    self._sentence_history.append(s.strip())
+        if not self._in_code_fence:
+            if len(parts) > 1:
+                # Completed sentences emerged
+                completed = parts[:-1]
+                self._current_sentence_buffer = parts[-1]
+                for s in completed:
+                    if s.strip():
+                        sim = self.evaluator.compute_sentence_similarity(s, self._sentence_history)
+                        if sim > similarity_score:
+                            similarity_score = sim
+                        self._sentence_history.append(s.strip())
+            else:
+                # Check current in-progress sentence if long enough
+                if len(self._current_sentence_buffer) > 20:
+                    similarity_score = self.evaluator.compute_sentence_similarity(
+                        self._current_sentence_buffer, self._sentence_history
+                    )
         else:
-            # Check current in-progress sentence if long enough
-            if len(self._current_sentence_buffer) > 20:
-                similarity_score = self.evaluator.compute_sentence_similarity(
-                    self._current_sentence_buffer, self._sentence_history
-                )
+            # Inside code fences: clear sentence buffer and bypass similarity
+            if len(parts) > 1:
+                self._current_sentence_buffer = parts[-1]
 
         # 4. Compute n-gram score
         ngram_score = self.evaluator.compute_ngram_overlap(
@@ -234,11 +248,15 @@ class StreamMonitor:
         )
 
         # 5. Calculate composite anomaly score
-        composite = self.evaluator.calculate_composite_score(
-            ngram_score=ngram_score,
-            similarity_score=similarity_score,
-            tool_repeat_score=tool_repeat_score,
-        )
+        if self._in_code_fence:
+            # ponytail: code blocks rely purely on extreme verbatim n-gram repetition
+            composite = ngram_score
+        else:
+            composite = self.evaluator.calculate_composite_score(
+                ngram_score=ngram_score,
+                similarity_score=similarity_score,
+                tool_repeat_score=tool_repeat_score,
+            )
 
         # 6. Check trip threshold with code fence whitelist adjustment
         active_threshold = 0.90 if self._in_code_fence else self.config.LOOP_ANOMALY_THRESHOLD
@@ -248,12 +266,12 @@ class StreamMonitor:
         trigger_reason: Optional[TripReason] = None
 
         if total_tokens_seen >= self.config.MIN_TOKENS_BEFORE_CHECK:
-            if composite >= active_threshold:
+            if composite >= active_threshold or (similarity_score >= self.config.SIMILARITY_THRESHOLD and not self._in_code_fence):
                 self._consecutive_high_ticks += 1
-                # Trip on 2 consecutive ticks or extreme anomaly (>= 0.88)
-                if self._consecutive_high_ticks >= 2 or composite >= 0.88:
+                # Trip on 2 consecutive ticks or extreme anomaly (>= 0.85)
+                if self._consecutive_high_ticks >= 2 or composite >= 0.85:
                     is_loop = True
-                    if ngram_score >= 0.65:
+                    if ngram_score >= 0.60:
                         trigger_reason = TripReason.NGRAM_REPETITION
                     elif similarity_score >= self.config.SIMILARITY_THRESHOLD:
                         trigger_reason = TripReason.CIRCULAR_REASONING
