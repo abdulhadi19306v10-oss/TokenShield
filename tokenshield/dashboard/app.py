@@ -32,59 +32,143 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# Custom Enterprise Dark-Theme CSS
-CUSTOM_CSS = """
+# Custom Enterprise Dark-Theme CSS & Anime.js Animations
+CUSTOM_CSS_AND_ANIMATIONS = """
+<!-- Anime.js CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+
 <style>
-    /* Global Typography & Background Adjustments */
-    .main {
-        background-color: #0B0F19;
-    }
-    h1, h2, h3, h4 {
-        color: #F8FAFC !important;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    /* Global Container Theme */
+    .stApp {
+        background: #0B0F19 !important;
+        color: #E2E8F0 !important;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
     }
     
-    /* Sleek Tab Container */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 8px;
-        background-color: #111827;
-        padding: 8px 12px;
-        border-radius: 8px;
-        border: 1px solid #1F2937;
+    /* Sleek Sidebar Theme with Hover Micro-Transitions */
+    section[data-testid="stSidebar"] {
+        background-color: #0F172A !important;
+        border-right: 1px solid #1E293B !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }
-    .stTabs [data-baseweb="tab"] {
-        height: 42px;
-        white-space: pre-wrap;
-        background-color: transparent;
-        border-radius: 6px;
-        color: #94A3B8;
-        font-weight: 600;
-        font-size: 14px;
-        padding: 0 16px;
-        border: none !important;
+    section[data-testid="stSidebar"]:hover {
+        border-right: 1px solid #38BDF8 !important;
+        box-shadow: 4px 0 24px rgba(0, 0, 0, 0.4) !important;
     }
-    .stTabs [aria-selected="true"] {
-        background-color: #1E293B !important;
+    
+    /* Navigation Radio Styling */
+    div[data-testid="stRadio"] > div {
+        gap: 6px !important;
+    }
+    div[data-testid="stRadio"] label {
+        background: #1E293B !important;
+        border: 1px solid #334155 !important;
+        border-radius: 8px !important;
+        padding: 10px 14px !important;
+        margin-bottom: 4px !important;
+        color: #CBD5E1 !important;
+        font-weight: 600 !important;
+        font-size: 13.5px !important;
+        cursor: pointer !important;
+        transition: all 0.2s ease-in-out !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+    div[data-testid="stRadio"] label:hover {
+        background: #334155 !important;
         color: #38BDF8 !important;
-        border-bottom: 2px solid #38BDF8 !important;
+        border-color: #38BDF8 !important;
+        transform: translateX(4px) !important;
+    }
+    div[data-testid="stRadio"] label[data-checked="true"],
+    div[data-testid="stRadio"] label:has(input:checked) {
+        background: linear-gradient(90deg, #1E3A8A 0%, #1E293B 100%) !important;
+        border-color: #38BDF8 !important;
+        color: #38BDF8 !important;
+        box-shadow: 0 2px 8px rgba(56, 189, 248, 0.2) !important;
     }
 
-    /* Buttons */
-    .stButton > button {
-        border-radius: 6px;
-        font-weight: 600;
-        letter-spacing: 0.2px;
-        transition: all 0.15s ease-in-out;
+    /* Cards with Lift Animation */
+    .metric-card {
+        transition: transform 0.25s ease, box-shadow 0.25s ease !important;
     }
-    
-    /* Code & JSON blocks */
-    .stCodeBlock, .stJson {
+    .metric-card:hover {
+        transform: translateY(-3px) !important;
+        box-shadow: 0 10px 20px -3px rgba(56, 189, 248, 0.15) !important;
+    }
+
+    /* Pulse Dot for Operational Status */
+    @keyframes pulse-green {
+        0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+        70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+    .live-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: #10B981;
+        animation: pulse-green 2s infinite;
+    }
+
+    /* Inputs, Sliders, and Form Controls */
+    .stTextInput > div > div > input,
+    .stNumberInput > div > div > input,
+    .stSelectbox > div > div {
+        background-color: #111827 !important;
+        border: 1px solid #1F2937 !important;
+        color: #F8FAFC !important;
+        border-radius: 6px !important;
+    }
+    .stTextInput > div > div > input:focus,
+    .stNumberInput > div > div > input:focus {
+        border-color: #38BDF8 !important;
+        box-shadow: 0 0 0 1px #38BDF8 !important;
+    }
+
+    /* Streamlit Buttons */
+    .stButton > button {
+        background: linear-gradient(180deg, #1E293B 0%, #0F172A 100%) !important;
+        color: #F8FAFC !important;
+        border: 1px solid #334155 !important;
+        border-radius: 6px !important;
+        font-weight: 600 !important;
+        padding: 8px 16px !important;
+        transition: all 0.2s ease !important;
+    }
+    .stButton > button:hover {
+        background: #1E3A8A !important;
+        border-color: #38BDF8 !important;
+        color: #38BDF8 !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 4px 12px rgba(56, 189, 248, 0.25) !important;
+    }
+
+    /* Dataframes and Tables */
+    .stDataFrame {
         border: 1px solid #1F2937 !important;
         border-radius: 8px !important;
+        overflow: hidden !important;
     }
 </style>
+
+<script>
+    // Smooth entrance micro-animations on load
+    document.addEventListener('DOMContentLoaded', () => {
+        if (window.anime) {
+            anime({
+                targets: '.metric-card',
+                translateY: [16, 0],
+                opacity: [0, 1],
+                delay: anime.stagger(60),
+                easing: 'easeOutCubic',
+                duration: 400
+            });
+        }
+    });
+</script>
 """
-st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
+st.markdown(CUSTOM_CSS_AND_ANIMATIONS, unsafe_allow_html=True)
 
 
 # --- Database Query Helpers ---
@@ -168,66 +252,80 @@ def load_circuit_trips(db_path: str, limit: int = 50) -> pd.DataFrame:
         return pd.DataFrame()
 
 
-# --- Branding Header Component ---
-LOGO_SVG_HTML = """
-<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding: 14px 20px; background: #0F172A; border: 1px solid #1E293B; border-radius: 8px;">
+# --- Top Header Bar Component ---
+HEADER_BAR_HTML = """
+<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; padding: 14px 20px; background: #0F172A; border: 1px solid #1E293B; border-radius: 8px;">
     <div style="display: flex; align-items: center; gap: 16px;">
-        <svg width="42" height="42" viewBox="0 0 76 76" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg width="40" height="40" viewBox="0 0 76 76" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M 38 4 C 54 4, 70 12, 70 24 C 70 52, 38 72, 38 72 C 38 72, 6 52, 6 24 C 6 12, 22 4, 38 4 Z" fill="#1E3A8A" stroke="#3B82F6" stroke-width="3" />
             <path d="M 18 36 L 28 36 L 33 22 L 42 50 L 48 36 L 58 36" fill="none" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" />
             <circle cx="33" cy="22" r="3.5" fill="#60A5FA" />
             <circle cx="42" cy="50" r="3.5" fill="#38BDF8" />
         </svg>
         <div>
-            <div style="font-size: 22px; font-weight: 800; color: #FFFFFF; letter-spacing: -0.5px; line-height: 1.1;">TOKENSHIELD</div>
+            <div style="font-size: 20px; font-weight: 800; color: #FFFFFF; letter-spacing: -0.5px; line-height: 1.1;">TOKENSHIELD CONTROL CENTER</div>
             <div style="font-size: 11px; font-weight: 600; color: #94A3B8; letter-spacing: 1.5px; text-transform: uppercase;">Real-Time Agentic Trajectory &amp; Token Interceptor</div>
         </div>
     </div>
-    <div style="display: flex; align-items: center; gap: 8px; background: #1E293B; padding: 6px 12px; border-radius: 6px; border: 1px solid #334155;">
-        <div style="width: 8px; height: 8px; border-radius: 50%; background: #10B981;"></div>
-        <span style="font-size: 12px; font-weight: 600; color: #E2E8F0;">Operational (Port 8000)</span>
+    <div style="display: flex; align-items: center; gap: 10px; background: #1E293B; padding: 6px 14px; border-radius: 6px; border: 1px solid #334155;">
+        <div class="live-dot"></div>
+        <span style="font-size: 12px; font-weight: 600; color: #E2E8F0;">Proxy Active: Port 8000</span>
     </div>
 </div>
 """
+st.markdown(HEADER_BAR_HTML, unsafe_allow_html=True)
 
-# --- Sidebar ---
+
+# --- Sidebar Navigation Menu with Vector Icons ---
 config = get_config()
 
-st.sidebar.markdown(LOGO_SVG_HTML, unsafe_allow_html=True)
-db_file = st.sidebar.text_input("Active Database Path", value=config.DATABASE_PATH)
-auto_refresh = st.sidebar.checkbox("Auto-refresh (5s)", value=False)
-if auto_refresh:
-    time.sleep(5)
-    st.rerun()
+SIDEBAR_LOGO_HTML = """
+<div style="display: flex; align-items: center; gap: 12px; padding: 10px 0 16px 0; border-bottom: 1px solid #1E293B; margin-bottom: 16px;">
+    <svg width="34" height="34" viewBox="0 0 76 76" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M 38 4 C 54 4, 70 12, 70 24 C 70 52, 38 72, 38 72 C 38 72, 6 52, 6 24 C 6 12, 22 4, 38 4 Z" fill="#1E3A8A" stroke="#3B82F6" stroke-width="3" />
+        <path d="M 18 36 L 28 36 L 33 22 L 42 50 L 48 36 L 58 36" fill="none" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" />
+        <circle cx="33" cy="22" r="3.5" fill="#60A5FA" />
+        <circle cx="42" cy="50" r="3.5" fill="#38BDF8" />
+    </svg>
+    <div style="font-size: 16px; font-weight: 800; color: #FFFFFF; letter-spacing: -0.3px;">TokenShield</div>
+</div>
+"""
+st.sidebar.markdown(SIDEBAR_LOGO_HTML, unsafe_allow_html=True)
 
-st.sidebar.divider()
-st.sidebar.markdown(section_header_html("Runtime Parameters", "Active proxy configurations", "sliders", "#38BDF8"), unsafe_allow_html=True)
-st.sidebar.markdown(f"**Proxy Address:** `{config.HOST}:{config.PORT}`")
-st.sidebar.markdown(f"**Target Model:** `{config.DEFAULT_MODEL}`")
-st.sidebar.markdown(f"**Anomaly Threshold:** `{config.LOOP_ANOMALY_THRESHOLD}`")
-st.sidebar.markdown(f"**Similarity Ratio:** `{config.SIMILARITY_THRESHOLD}`")
-
-st.sidebar.divider()
-if st.sidebar.button("Reload Settings from .env", use_container_width=True):
-    config = reload_config()
-    st.sidebar.success("Configuration reloaded successfully.")
-
-
-# --- Main Tabbed Navigation ---
-tab_telemetry, tab_settings, tab_sandbox, tab_benchmarks, tab_about = st.tabs([
+# Sidebar Navigation Control
+nav_options = [
     "Live Telemetry",
     "Configuration & Settings",
     "Testing Sandbox",
     "Benchmark Scorecard",
     "System Health & Guide",
-])
+]
+
+selected_view = st.sidebar.radio("Navigation Menu", nav_options, index=0)
+
+st.sidebar.divider()
+
+# Sidebar Collapsible Runtime Status
+db_file = config.DATABASE_PATH
+with st.sidebar.expander("Runtime Parameters", expanded=False):
+    db_file = st.text_input("Active DB Path", value=config.DATABASE_PATH)
+    auto_refresh = st.checkbox("Auto-refresh (5s)", value=False)
+    if auto_refresh:
+        time.sleep(5)
+        st.rerun()
+    st.markdown(f"**Proxy Target:** `{config.HOST}:{config.PORT}`")
+    st.markdown(f"**Target Model:** `{config.DEFAULT_MODEL}`")
+    st.markdown(f"**Anomaly Threshold:** `{config.LOOP_ANOMALY_THRESHOLD}`")
+    st.markdown(f"**Similarity Ratio:** `{config.SIMILARITY_THRESHOLD}`")
+    if st.button("Reload from .env", use_container_width=True):
+        config = reload_config()
+        st.success("Config reloaded.")
 
 
 # ==============================================================================
-# TAB 1: LIVE TELEMETRY & CONTROL ROOM
+# VIEW 1: LIVE TELEMETRY & CONTROL ROOM
 # ==============================================================================
-with tab_telemetry:
-    st.markdown(LOGO_SVG_HTML, unsafe_allow_html=True)
+if selected_view == "Live Telemetry":
     st.markdown(section_header_html("Live Telemetry & Trajectory Feed", "Real-time monitoring of agent streaming trajectories and circuit intercepts", "activity", "#38BDF8"), unsafe_allow_html=True)
 
     metrics = load_aggregate_metrics(db_file)
@@ -235,7 +333,7 @@ with tab_telemetry:
     if not metrics or metrics["total_sessions"] == 0:
         st.info("No telemetry sessions recorded yet. Start proxy requests, run a sandbox test, or launch benchmarks.")
     else:
-        # Top KPI Cards with vector icons
+        # Top KPI Metric Cards with Vector Icons
         c1, c2, c3, c4 = st.columns(4)
         with c1:
             st.markdown(card_metric_html("Tokens Saved", f"{metrics['total_tokens_saved']:,}", "From loops & payload compression", "shield", "#38BDF8"), unsafe_allow_html=True)
@@ -248,7 +346,7 @@ with tab_telemetry:
 
         st.divider()
 
-        # Real-time Trajectory Anomaly Monitor
+        # Real-time Trajectory Anomaly Monitor Chart
         st.markdown(section_header_html("In-Flight Trajectory Anomaly Stream", "Chunk-by-chunk anomaly progression vs circuit breaker threshold", "gauge", "#38BDF8"), unsafe_allow_html=True)
         sessions_df = load_sessions(db_file, limit=50)
 
@@ -303,7 +401,7 @@ with tab_telemetry:
 
         st.divider()
 
-        # Circuit Breaker Trips Log
+        # Circuit Breaker Trips Incident Log
         st.markdown(section_header_html("Circuit Breaker Incident Log", "Recent automated halts and prompt injections", "zap", "#EF4444"), unsafe_allow_html=True)
         trips_df = load_circuit_trips(db_file, limit=20)
         if not trips_df.empty:
@@ -329,9 +427,9 @@ with tab_telemetry:
 
 
 # ==============================================================================
-# TAB 2: SETTINGS & CONFIGURATION GUI
+# VIEW 2: SETTINGS & CONFIGURATION GUI
 # ==============================================================================
-with tab_settings:
+elif selected_view == "Configuration & Settings":
     st.markdown(section_header_html("Configuration & Settings Manager", "Modify TokenShield runtime parameters, anomaly thresholds, and circuit breaker policies", "settings", "#38BDF8"), unsafe_allow_html=True)
 
     with st.form("settings_form"):
@@ -417,7 +515,7 @@ with tab_settings:
 
     st.divider()
     st.markdown(section_header_html("Probe Upstream Connectivity", "Test connectivity to configured LLM endpoint", "activity", "#38BDF8"), unsafe_allow_html=True)
-    if st.button("Probe Upstream Connection"):
+    if st.button("Probe Upstream Connection", use_container_width=True):
         try:
             with st.spinner("Pinging upstream endpoint..."):
                 resp = httpx.get(f"{config.UPSTREAM_BASE_URL.rstrip('/')}/models", headers={"Authorization": f"Bearer {config.UPSTREAM_API_KEY}"} if config.UPSTREAM_API_KEY else {}, timeout=5.0)
@@ -427,9 +525,9 @@ with tab_settings:
 
 
 # ==============================================================================
-# TAB 3: INTERACTIVE SANDBOX & PROMPT SIMULATOR
+# VIEW 3: INTERACTIVE SANDBOX & PROMPT SIMULATOR
 # ==============================================================================
-with tab_sandbox:
+elif selected_view == "Testing Sandbox":
     st.markdown(section_header_html("Interactive Testing Sandbox", "Simulate live streaming payloads, tool retry loops, and pre-flight compression", "flask", "#10B981"), unsafe_allow_html=True)
 
     preset = st.selectbox(
@@ -535,9 +633,9 @@ with tab_sandbox:
 
 
 # ==============================================================================
-# TAB 4: 16-SCENARIO BENCHMARK SCORECARD
+# VIEW 4: 16-SCENARIO BENCHMARK SCORECARD
 # ==============================================================================
-with tab_benchmarks:
+elif selected_view == "Benchmark Scorecard":
     st.markdown(section_header_html("16-Scenario Benchmark Evaluation Suite", "Run comprehensive benchmarks across tool loops, circular reasoning, payload bloat, and false positive challenges", "trophy", "#F59E0B"), unsafe_allow_html=True)
 
     if st.button("Execute Full 16-Scenario Benchmark Suite", use_container_width=True):
@@ -575,9 +673,9 @@ with tab_benchmarks:
 
 
 # ==============================================================================
-# TAB 5: SYSTEM HEALTH & QUICK GUIDE
+# VIEW 5: SYSTEM HEALTH & GUIDE
 # ==============================================================================
-with tab_about:
+elif selected_view == "System Health & Guide":
     st.markdown(section_header_html("System Health & Integration Manual", "SDK integration patterns and terminal command reference", "info", "#38BDF8"), unsafe_allow_html=True)
     st.markdown("""
     ### How to Route Agent Requests Through TokenShield
