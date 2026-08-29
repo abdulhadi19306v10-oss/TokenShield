@@ -420,13 +420,12 @@ with tab_sandbox:
 
             if handler is not None:
                 stream_box = st.empty()
-                streamed_text = ""
-                tripped = False
                 sid = f"sandbox_sim_{int(time.time())}"
 
-                async def run_stream():
-                    nonlocal streamed_text, tripped
-                    async for chunk_str in handler.stream_chat_completion(payload, session_id=sid):
+                async def execute_simulation(h, p, s_id, box):
+                    accumulated_text = ""
+                    was_tripped = False
+                    async for chunk_str in h.stream_chat_completion(p, session_id=s_id):
                         if "data:" in chunk_str and "[DONE]" not in chunk_str:
                             for line in chunk_str.splitlines():
                                 if line.startswith("data:"):
@@ -434,14 +433,15 @@ with tab_sandbox:
                                         d = json.loads(line[5:].strip())
                                         c = d["choices"][0]["delta"].get("content")
                                         if c:
-                                            streamed_text += c
-                                            stream_box.text_area("Live Stream Output", value=streamed_text, height=200)
+                                            accumulated_text += c
+                                            box.text_area("Live Stream Output", value=accumulated_text, height=200)
                                             if "Runaway loop halted" in c:
-                                                tripped = True
+                                                was_tripped = True
                                     except Exception:
                                         pass
+                    return accumulated_text, was_tripped
 
-                asyncio.run(run_stream())
+                streamed_text, tripped = asyncio.run(execute_simulation(handler, payload, sid, stream_box))
 
                 if tripped:
                     st.error("⚡ **Circuit Breaker Tripped!** Runaway loop intercepted in-flight to prevent token burn.")
