@@ -14,6 +14,11 @@ import streamlit as st
 from tests.mock_upstream import MockUpstreamClient
 from tests.scenarios.benchmark_runner import run_all_benchmarks
 from tokenshield.config import TokenShieldConfig, get_config, reload_config, save_config_to_env
+from tokenshield.dashboard.icons import (
+    card_metric_html,
+    get_icon_svg,
+    section_header_html,
+)
 from tokenshield.engine.pre_execution import PreExecutionEngine
 from tokenshield.proxy.handler import ProxyHandler
 from tokenshield.telemetry.database import TelemetryDatabase
@@ -26,6 +31,60 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+# Custom Enterprise Dark-Theme CSS
+CUSTOM_CSS = """
+<style>
+    /* Global Typography & Background Adjustments */
+    .main {
+        background-color: #0B0F19;
+    }
+    h1, h2, h3, h4 {
+        color: #F8FAFC !important;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    
+    /* Sleek Tab Container */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
+        background-color: #111827;
+        padding: 8px 12px;
+        border-radius: 8px;
+        border: 1px solid #1F2937;
+    }
+    .stTabs [data-baseweb="tab"] {
+        height: 42px;
+        white-space: pre-wrap;
+        background-color: transparent;
+        border-radius: 6px;
+        color: #94A3B8;
+        font-weight: 600;
+        font-size: 14px;
+        padding: 0 16px;
+        border: none !important;
+    }
+    .stTabs [aria-selected="true"] {
+        background-color: #1E293B !important;
+        color: #38BDF8 !important;
+        border-bottom: 2px solid #38BDF8 !important;
+    }
+
+    /* Buttons */
+    .stButton > button {
+        border-radius: 6px;
+        font-weight: 600;
+        letter-spacing: 0.2px;
+        transition: all 0.15s ease-in-out;
+    }
+    
+    /* Code & JSON blocks */
+    .stCodeBlock, .stJson {
+        border: 1px solid #1F2937 !important;
+        border-radius: 8px !important;
+    }
+</style>
+"""
+st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 
 
 # --- Database Query Helpers ---
@@ -111,16 +170,22 @@ def load_circuit_trips(db_path: str, limit: int = 50) -> pd.DataFrame:
 
 # --- Branding Header Component ---
 LOGO_SVG_HTML = """
-<div style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px; padding: 12px 18px; background: #0F172A; border-radius: 8px; color: #FFFFFF;">
-    <svg width="44" height="44" viewBox="0 0 76 76" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M 38 4 C 54 4, 70 12, 70 24 C 70 52, 38 72, 38 72 C 38 72, 6 52, 6 24 C 6 12, 22 4, 38 4 Z" fill="#1E3A8A" stroke="#3B82F6" stroke-width="3" />
-        <path d="M 18 36 L 28 36 L 33 22 L 42 50 L 48 36 L 58 36" fill="none" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" />
-        <circle cx="33" cy="22" r="3.5" fill="#60A5FA" />
-        <circle cx="42" cy="50" r="3.5" fill="#38BDF8" />
-    </svg>
-    <div>
-        <div style="font-size: 24px; font-weight: 800; letter-spacing: -0.5px; line-height: 1.1;">TOKENSHIELD</div>
-        <div style="font-size: 11px; font-weight: 600; color: #94A3B8; letter-spacing: 1.5px; text-transform: uppercase;">Real-Time Agentic Trajectory &amp; Token Interceptor</div>
+<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding: 14px 20px; background: #0F172A; border: 1px solid #1E293B; border-radius: 8px;">
+    <div style="display: flex; align-items: center; gap: 16px;">
+        <svg width="42" height="42" viewBox="0 0 76 76" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M 38 4 C 54 4, 70 12, 70 24 C 70 52, 38 72, 38 72 C 38 72, 6 52, 6 24 C 6 12, 22 4, 38 4 Z" fill="#1E3A8A" stroke="#3B82F6" stroke-width="3" />
+            <path d="M 18 36 L 28 36 L 33 22 L 42 50 L 48 36 L 58 36" fill="none" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" />
+            <circle cx="33" cy="22" r="3.5" fill="#60A5FA" />
+            <circle cx="42" cy="50" r="3.5" fill="#38BDF8" />
+        </svg>
+        <div>
+            <div style="font-size: 22px; font-weight: 800; color: #FFFFFF; letter-spacing: -0.5px; line-height: 1.1;">TOKENSHIELD</div>
+            <div style="font-size: 11px; font-weight: 600; color: #94A3B8; letter-spacing: 1.5px; text-transform: uppercase;">Real-Time Agentic Trajectory &amp; Token Interceptor</div>
+        </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 8px; background: #1E293B; padding: 6px 12px; border-radius: 6px; border: 1px solid #334155;">
+        <div style="width: 8px; height: 8px; border-radius: 50%; background: #10B981;"></div>
+        <span style="font-size: 12px; font-weight: 600; color: #E2E8F0;">Operational (Port 8000)</span>
     </div>
 </div>
 """
@@ -136,14 +201,14 @@ if auto_refresh:
     st.rerun()
 
 st.sidebar.divider()
-st.sidebar.subheader("Runtime Summary")
-st.sidebar.markdown(f"**Proxy Target:** `{config.HOST}:{config.PORT}`")
-st.sidebar.markdown(f"**Default Model:** `{config.DEFAULT_MODEL}`")
-st.sidebar.markdown(f"**Trip Threshold:** `{config.LOOP_ANOMALY_THRESHOLD}`")
-st.sidebar.markdown(f"**Similarity Threshold:** `{config.SIMILARITY_THRESHOLD}`")
+st.sidebar.markdown(section_header_html("Runtime Parameters", "Active proxy configurations", "sliders", "#38BDF8"), unsafe_allow_html=True)
+st.sidebar.markdown(f"**Proxy Address:** `{config.HOST}:{config.PORT}`")
+st.sidebar.markdown(f"**Target Model:** `{config.DEFAULT_MODEL}`")
+st.sidebar.markdown(f"**Anomaly Threshold:** `{config.LOOP_ANOMALY_THRESHOLD}`")
+st.sidebar.markdown(f"**Similarity Ratio:** `{config.SIMILARITY_THRESHOLD}`")
 
 st.sidebar.divider()
-if st.sidebar.button("Reload Settings from .env"):
+if st.sidebar.button("Reload Settings from .env", use_container_width=True):
     config = reload_config()
     st.sidebar.success("Configuration reloaded successfully.")
 
@@ -163,28 +228,28 @@ tab_telemetry, tab_settings, tab_sandbox, tab_benchmarks, tab_about = st.tabs([
 # ==============================================================================
 with tab_telemetry:
     st.markdown(LOGO_SVG_HTML, unsafe_allow_html=True)
-    st.markdown("Real-time monitoring of LLM streaming agent trajectories, context deduplication savings, and circuit trips.")
+    st.markdown(section_header_html("Live Telemetry & Trajectory Feed", "Real-time monitoring of agent streaming trajectories and circuit intercepts", "activity", "#38BDF8"), unsafe_allow_html=True)
 
     metrics = load_aggregate_metrics(db_file)
 
     if not metrics or metrics["total_sessions"] == 0:
         st.info("No telemetry sessions recorded yet. Start proxy requests, run a sandbox test, or launch benchmarks.")
     else:
-        # Top KPI Scorecards
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            st.metric("Total Tokens Saved", f"{metrics['total_tokens_saved']:,}")
-        with col2:
-            st.metric("Total Cost Saved (USD)", f"${metrics['total_cost_saved_usd']:.4f}")
-        with col3:
-            st.metric("Circuit Breaker Trips", f"{metrics['total_trips']}", delta=f"{metrics['tripped_sessions']} sessions")
-        with col4:
-            st.metric("Monitored Sessions", f"{metrics['total_sessions']}", delta=f"{metrics['active_sessions']} active")
+        # Top KPI Cards with vector icons
+        c1, c2, c3, c4 = st.columns(4)
+        with c1:
+            st.markdown(card_metric_html("Tokens Saved", f"{metrics['total_tokens_saved']:,}", "From loops & payload compression", "shield", "#38BDF8"), unsafe_allow_html=True)
+        with c2:
+            st.markdown(card_metric_html("Estimated Cost Saved", f"${metrics['total_cost_saved_usd']:.4f}", "USD tokenomics valuation", "dollar", "#10B981"), unsafe_allow_html=True)
+        with c3:
+            st.markdown(card_metric_html("Circuit Intercepts", f"{metrics['total_trips']}", f"{metrics['tripped_sessions']} runaway sessions halted", "zap", "#EF4444"), unsafe_allow_html=True)
+        with c4:
+            st.markdown(card_metric_html("Monitored Sessions", f"{metrics['total_sessions']}", f"{metrics['active_sessions']} currently streaming", "server", "#A855F7"), unsafe_allow_html=True)
 
         st.divider()
 
         # Real-time Trajectory Anomaly Monitor
-        st.subheader("In-Flight Trajectory Anomaly Monitor")
+        st.markdown(section_header_html("In-Flight Trajectory Anomaly Stream", "Chunk-by-chunk anomaly progression vs circuit breaker threshold", "gauge", "#38BDF8"), unsafe_allow_html=True)
         sessions_df = load_sessions(db_file, limit=50)
 
         if not sessions_df.empty:
@@ -201,26 +266,33 @@ with tab_telemetry:
                         y=events_df["anomaly_score"],
                         mode="lines+markers",
                         name="Loop Anomaly Score",
-                        line=dict(color="#2563EB", width=2),
-                        marker=dict(size=6),
+                        line=dict(color="#38BDF8", width=2.5),
+                        marker=dict(size=7, color="#0284C7"),
+                        fill="tozeroy",
+                        fillcolor="rgba(56, 189, 248, 0.08)",
                     )
                 )
 
                 fig.add_hline(
                     y=config.LOOP_ANOMALY_THRESHOLD,
                     line_dash="dash",
-                    line_color="#DC2626",
+                    line_color="#EF4444",
                     annotation_text=f"Trip Threshold ({config.LOOP_ANOMALY_THRESHOLD})",
                     annotation_position="bottom right",
+                    annotation_font=dict(color="#EF4444", size=12),
                 )
 
                 fig.update_layout(
-                    title=f"Anomaly Progression for Session: {selected_session}",
-                    xaxis_title="Event Sequence / Evaluation Tick",
+                    title=f"Trajectory Anomaly Progression: {selected_session}",
+                    xaxis_title="Chunk Evaluation Tick",
                     yaxis_title="Anomaly Score (0.0 to 1.0)",
-                    yaxis=dict(range=[0, 1.05]),
-                    template="plotly_white",
-                    height=380,
+                    yaxis=dict(range=[0, 1.05], gridcolor="#1E293B"),
+                    xaxis=dict(gridcolor="#1E293B"),
+                    paper_bgcolor="#0F172A",
+                    plot_bgcolor="#0F172A",
+                    font=dict(color="#E2E8F0"),
+                    height=360,
+                    margin=dict(l=40, r=40, t=50, b=40),
                 )
                 st.plotly_chart(fig, use_container_width=True)
 
@@ -232,7 +304,7 @@ with tab_telemetry:
         st.divider()
 
         # Circuit Breaker Trips Log
-        st.subheader("Intercepted Loop Incidents")
+        st.markdown(section_header_html("Circuit Breaker Incident Log", "Recent automated halts and prompt injections", "zap", "#EF4444"), unsafe_allow_html=True)
         trips_df = load_circuit_trips(db_file, limit=20)
         if not trips_df.empty:
             st.dataframe(
@@ -245,7 +317,7 @@ with tab_telemetry:
         st.divider()
 
         # Session Explorer
-        st.subheader("Session History & Tokenomics")
+        st.markdown(section_header_html("Session History & Tokenomics", "Detailed session metadata and prompt/completion tokens", "database", "#6366F1"), unsafe_allow_html=True)
         if not sessions_df.empty:
             st.dataframe(
                 sessions_df[[
@@ -260,22 +332,21 @@ with tab_telemetry:
 # TAB 2: SETTINGS & CONFIGURATION GUI
 # ==============================================================================
 with tab_settings:
-    st.header("Configuration & Settings Manager")
-    st.markdown("Modify TokenShield proxy configuration, anomaly detection thresholds, and circuit breaker policies directly from this interface.")
+    st.markdown(section_header_html("Configuration & Settings Manager", "Modify TokenShield runtime parameters, anomaly thresholds, and circuit breaker policies", "settings", "#38BDF8"), unsafe_allow_html=True)
 
     with st.form("settings_form"):
-        st.subheader("Network & Upstream Provider")
+        st.markdown(section_header_html("Network & Upstream Provider", "Reverse proxy endpoint and upstream LLM connection", "server", "#38BDF8"), unsafe_allow_html=True)
         c1, c2 = st.columns(2)
         with c1:
             host_val = st.text_input("Proxy Host", value=config.HOST, help="Network interface to bind (0.0.0.0 for all interfaces)")
             port_val = st.number_input("Proxy Port", value=int(config.PORT), min_value=1024, max_value=65535)
-            model_val = st.text_input("Default Model", value=config.DEFAULT_MODEL, help="Target LLM model name (e.g. gpt-4o-mini, gpt-4o, claude-3-5-sonnet)")
+            model_val = st.text_input("Default Model", value=config.DEFAULT_MODEL, help="Target LLM model name (e.g. gpt-4o-mini, llama3.1, claude-3-5-sonnet)")
         with c2:
-            base_url_val = st.text_input("Upstream Base URL", value=config.UPSTREAM_BASE_URL, help="Upstream API base URL (e.g. https://api.openai.com/v1)")
+            base_url_val = st.text_input("Upstream Base URL", value=config.UPSTREAM_BASE_URL, help="Upstream API base URL (e.g. https://api.openai.com/v1 or http://localhost:11434/v1)")
             api_key_val = st.text_input("Upstream API Key", value=config.UPSTREAM_API_KEY, type="password", help="Authorization Bearer key for upstream LLM")
 
         st.divider()
-        st.subheader("Pre-Execution Optimization")
+        st.markdown(section_header_html("Pre-Execution Optimization", "Payload minification, JSON schema summarization, and turn pruning", "scissors", "#10B981"), unsafe_allow_html=True)
         c3, c4, c5 = st.columns(3)
         with c3:
             enable_dedup = st.toggle("Enable Pre-Flight Deduplication", value=bool(config.ENABLE_DEDUPLICATION))
@@ -285,7 +356,7 @@ with tab_settings:
             sliding_turns_val = st.slider("Sliding Window Turns", min_value=2, max_value=50, value=int(config.SLIDING_WINDOW_TURNS), step=1, help="Max conversational turns retained before trimming stale history")
 
         st.divider()
-        st.subheader("In-Flight Stream Anomaly Thresholds")
+        st.markdown(section_header_html("In-Flight Stream Anomaly Thresholds", "Rolling N-gram evaluation and fuzzy Levenshtein similarity gates", "gauge", "#F59E0B"), unsafe_allow_html=True)
         c6, c7 = st.columns(2)
         with c6:
             anomaly_thresh_val = st.slider(
@@ -310,7 +381,7 @@ with tab_settings:
             min_tokens_val = st.slider("Min Warmup Tokens Before Check", min_value=5, max_value=50, value=int(config.MIN_TOKENS_BEFORE_CHECK), step=1)
 
         st.divider()
-        st.subheader("Circuit Breaker & Database Policies")
+        st.markdown(section_header_html("Circuit Breaker & Database Policies", "System recovery steering and human-in-the-loop checkpoint gates", "shield", "#8B5CF6"), unsafe_allow_html=True)
         c8, c9, c10 = st.columns(3)
         with c8:
             auto_steer = st.toggle("Auto-Inject System Steering", value=bool(config.AUTO_INJECT_STEERING), help="Injects corrective recovery guidance when loops trip")
@@ -345,7 +416,7 @@ with tab_settings:
             st.success("Configuration saved to .env and runtime cache updated.")
 
     st.divider()
-    st.subheader("Probe Upstream Connectivity")
+    st.markdown(section_header_html("Probe Upstream Connectivity", "Test connectivity to configured LLM endpoint", "activity", "#38BDF8"), unsafe_allow_html=True)
     if st.button("Probe Upstream Connection"):
         try:
             with st.spinner("Pinging upstream endpoint..."):
@@ -359,8 +430,7 @@ with tab_settings:
 # TAB 3: INTERACTIVE SANDBOX & PROMPT SIMULATOR
 # ==============================================================================
 with tab_sandbox:
-    st.header("Testing Sandbox")
-    st.markdown("Test TokenShield's pre-flight context compression and in-flight streaming circuit breaker in real time.")
+    st.markdown(section_header_html("Interactive Testing Sandbox", "Simulate live streaming payloads, tool retry loops, and pre-flight compression", "flask", "#10B981"), unsafe_allow_html=True)
 
     preset = st.selectbox(
         "Select Simulation Scenario Preset",
@@ -372,7 +442,7 @@ with tab_sandbox:
         ]
     )
 
-    if st.button("Run Simulation"):
+    if st.button("Run Simulation", use_container_width=True):
         st.write("---")
         with st.spinner("Executing simulation..."):
             sim_db = TelemetryDatabase(db_path=config.DATABASE_PATH)
@@ -408,11 +478,12 @@ with tab_sandbox:
                 st.success("Pre-Flight Context Optimization Complete")
                 col_a, col_b, col_c = st.columns(3)
                 with col_a:
-                    st.metric("Original Prompt Tokens", f"{metrics.original_prompt_tokens}")
+                    st.markdown(card_metric_html("Original Tokens", f"{metrics.original_prompt_tokens:,}", "Raw JSON table dump", "database", "#94A3B8"), unsafe_allow_html=True)
                 with col_b:
-                    st.metric("Compressed Tokens", f"{metrics.trimmed_prompt_tokens}")
+                    st.markdown(card_metric_html("Compressed Tokens", f"{metrics.trimmed_prompt_tokens:,}", "Schema + sample rows", "scissors", "#38BDF8"), unsafe_allow_html=True)
                 with col_c:
-                    st.metric("Tokens Saved", f"{metrics.tokens_saved}", delta=f"{round((metrics.tokens_saved/metrics.original_prompt_tokens)*100, 1)}% reduction")
+                    pct = round((metrics.tokens_saved / metrics.original_prompt_tokens) * 100, 1)
+                    st.markdown(card_metric_html("Tokens Saved", f"{metrics.tokens_saved:,}", f"{pct}% payload reduction", "shield", "#10B981"), unsafe_allow_html=True)
                 st.json(json.loads(opt_msgs[0]["content"]))
                 handler = None
             else:
@@ -447,7 +518,7 @@ with tab_sandbox:
                                         c = d["choices"][0]["delta"].get("content")
                                         if c:
                                             accumulated_text += c
-                                            box.text_area("Live Stream Output", value=accumulated_text, height=200)
+                                            box.text_area("Live Stream Terminal", value=accumulated_text, height=180)
                                             if "Runaway loop halted" in c:
                                                 was_tripped = True
                                     except Exception:
@@ -467,14 +538,12 @@ with tab_sandbox:
 # TAB 4: 16-SCENARIO BENCHMARK SCORECARD
 # ==============================================================================
 with tab_benchmarks:
-    st.header("16-Scenario Benchmark Evaluation Suite")
-    st.markdown("Run the complete 16-scenario benchmark suite to evaluate token reduction rates, cost savings, and false-positive resilience.")
+    st.markdown(section_header_html("16-Scenario Benchmark Evaluation Suite", "Run comprehensive benchmarks across tool loops, circular reasoning, payload bloat, and false positive challenges", "trophy", "#F59E0B"), unsafe_allow_html=True)
 
     if st.button("Execute Full 16-Scenario Benchmark Suite", use_container_width=True):
         with st.spinner("Running all 16 benchmark scenarios..."):
             results = asyncio.run(run_all_benchmarks())
 
-            # Convert to DataFrame
             df_results = pd.DataFrame([
                 {
                     "Scenario ID": r.scenario_id,
@@ -498,21 +567,21 @@ with tab_benchmarks:
 
             col_m1, col_m2, col_m3 = st.columns(3)
             with col_m1:
-                st.metric("Total Tokens Saved Across Suite", f"{total_saved:,}")
+                st.markdown(card_metric_html("Tokens Saved", f"{total_saved:,}", "Across all 16 scenarios", "shield", "#38BDF8"), unsafe_allow_html=True)
             with col_m2:
-                st.metric("Net Token Reduction Rate", f"{avg_reduction}%", delta="Target > 75%")
+                st.markdown(card_metric_html("Net Reduction Rate", f"{avg_reduction}%", "Target > 75%", "gauge", "#10B981"), unsafe_allow_html=True)
             with col_m3:
-                st.metric("False-Positive Rate", f"{fp_count} / 4 ({0.0 if fp_count == 0 else 100.0}%)", delta="0% target")
+                st.markdown(card_metric_html("False-Positive Rate", f"{fp_count} / 4 ({0.0 if fp_count == 0 else 100.0}%)", "Target: 0.0%", "check", "#38BDF8" if fp_count == 0 else "#EF4444"), unsafe_allow_html=True)
 
 
 # ==============================================================================
 # TAB 5: SYSTEM HEALTH & QUICK GUIDE
 # ==============================================================================
 with tab_about:
-    st.header("System Health & Integration Guide")
+    st.markdown(section_header_html("System Health & Integration Manual", "SDK integration patterns and terminal command reference", "info", "#38BDF8"), unsafe_allow_html=True)
     st.markdown("""
     ### How to Route Agent Requests Through TokenShield
-    Clients simply point their standard OpenAI client SDK `base_url` to TokenShield:
+    Point your standard OpenAI client SDK `base_url` to TokenShield:
     ```python
     from openai import OpenAI
 
@@ -523,7 +592,7 @@ with tab_about:
 
     response = client.chat.completions.create(
         model="gpt-4o-mini",
-        messages=[{"role": "user", "content": "Hello TokenShield!"}],
+        messages=[{"role": "user", "content": "Execute autonomous task"}],
         stream=True,
     )
     ```
