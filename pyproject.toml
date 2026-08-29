@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools>=65.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tokenshield"
+version = "0.1.0"
+description = "Real-Time Agentic Trajectory & Token Interceptor Proxy"
+readme = "project.md"
+requires-python = ">=3.11"
+authors = [{ name = "TokenShield Team" }]
+dependencies = [
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.28.0",
+    "litellm>=1.35.0",
+    "pydantic>=2.6.0",
+    "pydantic-settings>=2.1.0",
+    "httpx>=0.27.0",
+    "aiohttp>=3.9.0",
+    "tiktoken>=0.6.0",
+    "rapidfuzz>=3.6.0",
+    "nltk>=3.8.1",
+    "aiosqlite>=0.20.0",
+    "sqlalchemy>=2.0.0",
+    "streamlit>=1.32.0",
+    "pandas>=2.2.0",
+    "plotly>=5.20.0",
+    "python-dotenv>=1.0.1",
+    "rich>=13.7.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["tokenshield*"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+pythonpath = ["."]
