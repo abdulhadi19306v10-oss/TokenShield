@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="assets/logo.svg" alt="TokenShield Logo" width="300"/>
+  <img src="../assets/logo.svg" alt="TokenShield Logo" width="300"/>
   <p><strong>Official Reproduction Manual for Judges &amp; Independent Reviewers</strong></p>
   <p><em>micro1 Agentic Workflows Hackathon (Deliverable 02)</em></p>
 </div>

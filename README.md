@@ -233,7 +233,12 @@ python tests/scenarios/benchmark_runner.py
 
 ## Supporting Deliverables & Links
 
-* [Detailed Reproduction Guide (`REPRODUCTION.md`)](file:///C:/Users/Abdul%20Hadi/Desktop/Micro1/REPRODUCTION.md): Exhaustive step-by-step reproduction instructions for judges starting from a clean machine.
-* [Representative Agent Trajectories (`AGENT_TRAJECTORIES.md`)](file:///C:/Users/Abdul%20Hadi/Desktop/Micro1/AGENT_TRAJECTORIES.md): Real execution logs showing pre-flight compression, in-flight stream evaluation, circuit trip notices, and recovery steering.
-* [5-Minute Solution Video Script (`VIDEO_SCRIPT.md`)](file:///C:/Users/Abdul%20Hadi/Desktop/Micro1/VIDEO_SCRIPT.md): Walkthrough script explaining the problem, live demo, and changelog story.
-* [Technical Architectural Blueprint (`design.md`)](file:///C:/Users/Abdul%20Hadi/Desktop/Micro1/design.md): Exhaustive engineering specification, mathematical scoring formulas, and database DDL.
+All formal project deliverables are packaged in the [`deliverables/`](deliverables/) folder:
+
+* [**Deliverables Index & Guide (`deliverables/README.md`)**](deliverables/README.md): Master navigation directory for hackathon judges and evaluators.
+* [**Detailed Reproduction Guide (`deliverables/REPRODUCTION.md`)**](deliverables/REPRODUCTION.md): Exhaustive step-by-step reproduction instructions starting from a clean machine.
+* [**Representative Agent Trajectories (`deliverables/AGENT_TRAJECTORIES.md`)**](deliverables/AGENT_TRAJECTORIES.md): Real execution logs showing pre-flight compression, in-flight stream evaluation, circuit trip notices, and recovery steering.
+* [**Technical Architectural Blueprint (`deliverables/DESIGN.md`)**](deliverables/DESIGN.md): Exhaustive engineering specification, mathematical scoring formulas, and database DDL.
+* [**Project Specification (`deliverables/PROJECT_SPEC.md`)**](deliverables/PROJECT_SPEC.md): High-level system requirements, component topology, and evaluation framework.
+* [**Hackathon Brief (`deliverables/hackathon_brief.pdf`)**](deliverables/hackathon_brief.pdf): Official hackathon requirements and evaluation rubrics.
+
